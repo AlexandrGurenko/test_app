@@ -1,5 +1,9 @@
+import 'dart:ui';
+
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:test_app/constants/palette.dart';
 import 'package:test_app/models/terminal.dart';
 import 'package:test_app/pages/exchange_points/exchange_points_airports.dart';
@@ -109,13 +113,67 @@ class _ExchangePointsDetailsState extends State<ExchangePointsDetails> {
           title: 'Проложить маршрут',
           callback: () {
             determinePosition().then((position) {
-              if(position != null) {
-                launchMapsUrl(position.latitude, position.longitude);
+              if (position != null) {
+                showBottomSheet(position);
               }
             });
           },
         ),
       ],
     );
+  }
+
+  void showBottomSheet(Position position) {
+    showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (context) {
+          return Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8.0, vertical: 36.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14.0),
+                    color: Color(0xFF252525),
+                  ),
+                  child: Column(
+                    children: [
+                      CupertinoButton(
+                          child: Text('Открыть в Карты'),
+                          onPressed: () {
+                            launchMapsUrl(
+                                position.latitude, position.longitude);
+                            Navigator.pop(context);
+                          }),
+                      Divider(color: Color(0xFFD9D9D9).withOpacity(0.7)),
+                      CupertinoButton(
+                          child: Text('Открыть в Google Карты'),
+                          onPressed: () {
+                            launchMapsUrl(position.latitude, position.longitude,
+                                google: true);
+                            Navigator.pop(context);
+                          }),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 8.0),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14.0),
+                    color: Color(0xFF2C2C2E),
+                  ),
+                  child: CupertinoButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text('Отмена'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
   }
 }

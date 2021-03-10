@@ -1,3 +1,4 @@
+import 'package:clickable_list_wheel_view/clickable_list_wheel_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -31,6 +32,9 @@ class ExchangePointsTerminal extends StatefulWidget {
 }
 
 class _ExchangePointsTerminalState extends State<ExchangePointsTerminal> {
+  final _scrollController = FixedExtentScrollController();
+  double _itemHeight = 60;
+
   List<Terminal> terminals = [
     Terminal(title: '1 этфаж', subTitle: '(зона прилетов)'),
     Terminal(
@@ -99,18 +103,36 @@ class _ExchangePointsTerminalState extends State<ExchangePointsTerminal> {
         ),
         SizedBox(height: 30),
         Expanded(
-          child: CupertinoPicker(
-            diameterRatio: 1.2,
-            itemExtent: 66,
-            onSelectedItemChanged: (index) {
-              widget.terminalCallback(terminals[index]);
-            },
-            children: List<Widget>.generate(
-              terminals.length,
-              (index) {
-                return TerminalWidget(terminal: terminals[index]);
-              },
-            ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                height: _itemHeight,
+                color: Color(0xFF25476F).withOpacity(0.67),
+              ),
+              ClickableListWheelScrollView(
+                scrollController: _scrollController,
+                itemHeight: _itemHeight,
+                itemCount: terminals.length,
+                onItemTapCallback: (index) {
+                  widget.terminalCallback(terminals[index]);
+                },
+                child: ListWheelScrollView.useDelegate(
+                  controller: _scrollController,
+                  itemExtent: _itemHeight,
+                  physics: FixedExtentScrollPhysics(),
+                  overAndUnderCenterOpacity: 0.5,
+                  onSelectedItemChanged: (index) {
+                    widget.terminalCallback(terminals[index]);
+                  },
+                  childDelegate: ListWheelChildBuilderDelegate(
+                      childCount: terminals.length,
+                      builder: (BuildContext context, int index) {
+                        return TerminalWidget(terminal: terminals[index],);
+                      }),
+                ),
+              ),
+            ],
           ),
         ),
         CustomButton(
@@ -118,7 +140,7 @@ class _ExchangePointsTerminalState extends State<ExchangePointsTerminal> {
           callback: () {
             widget.callback(widget.pageIndex + 1);
           },
-        )
+        ),
       ],
     );
   }

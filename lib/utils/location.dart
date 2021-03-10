@@ -39,8 +39,12 @@ Future<Position> determinePosition() async {
   return await Geolocator.getCurrentPosition();
 }
 
-void launchMapsUrl(double lat, double lon) async {
-  final url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lon';
+void launchMapsUrl(double lat, double lon, {bool google = false}) async {
+  String url;
+
+  if(google) url = 'https://www.google.com/maps/search/?api=1&query=$lat,$lon';
+  else url = 'https://maps.apple.com/?q=$lat,$lon';
+
   if (await canLaunch(url)) {
     await launch(url);
   } else {

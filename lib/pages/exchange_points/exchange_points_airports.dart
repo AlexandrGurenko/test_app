@@ -1,9 +1,10 @@
+import 'package:clickable_list_wheel_view/clickable_list_wheel_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:test_app/constants/palette.dart';
-import 'package:test_app/widgets/CustomButton.dart';
 import 'package:test_app/models/airport.dart';
+import 'package:test_app/widgets/CustomButton.dart';
 import 'package:test_app/widgets/airport_widget.dart';
 
 typedef IntCallback(int index);
@@ -23,6 +24,8 @@ class ExchangePointsAirports extends StatefulWidget {
 }
 
 class _ExchangePointsAirportsState extends State<ExchangePointsAirports> {
+  final _scrollController = FixedExtentScrollController();
+
   List<Airport> airports = [
     Airport(name: 'Львов', img: 'assets/images/lviv.png', id: 1),
     Airport(name: 'Харьков', img: 'assets/images/kharkiv.png', id: 2),
@@ -33,6 +36,8 @@ class _ExchangePointsAirportsState extends State<ExchangePointsAirports> {
 
   Airport _selectedAirport;
   int _availableAirportId = 3;
+
+  double _itemHeight = 60;
 
   @override
   Widget build(BuildContext context) {
@@ -79,40 +84,52 @@ class _ExchangePointsAirportsState extends State<ExchangePointsAirports> {
         ),
         SizedBox(height: 30),
         Expanded(
-          child: Row(
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Expanded(
-                child: CupertinoPicker(
-                  diameterRatio: 1,
-                  itemExtent: 50,
+              Container(
+                height: _itemHeight,
+                color: Color(0xFF25476F).withOpacity(0.67),
+              ),
+              ClickableListWheelScrollView(
+                scrollController: _scrollController,
+                itemHeight: _itemHeight,
+                itemCount: airports.length,
+                onItemTapCallback: (index) {
+                  _selectedAirport = airports[index];
+                  widget.selectedAirportChanged(_selectedAirport);
+                },
+                child: ListWheelScrollView.useDelegate(
+                  controller: _scrollController,
+                  itemExtent: _itemHeight,
+                  physics: FixedExtentScrollPhysics(),
+                  overAndUnderCenterOpacity: 0.5,
                   onSelectedItemChanged: (index) {
                     _selectedAirport = airports[index];
                     widget.selectedAirportChanged(_selectedAirport);
                   },
-                  children: List<Widget>.generate(
-                    airports.length,
-                    (index) {
-                      return AirportWidget(
-                        airport: airports[index],
-                      );
-                    },
-                  ),
+                  childDelegate: ListWheelChildBuilderDelegate(
+                      childCount: airports.length,
+                      builder: (BuildContext context, int index) {
+                        return AirportWidget(airport: airports[index]);
+                      }),
                 ),
               ),
             ],
           ),
         ),
         CustomButton(
-          title: 'Продолжить',
+            title: 'Продолжить',
             callback: () {
-          if (_availableAirportId == _selectedAirport.id)
-            widget.callback(widget.pageIndex + 1);
-          else
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: const Text('Выбранный аэропорт недоступен'),
-              duration: const Duration(seconds: 2),
-            ));
-        }),
+              if (_availableAirportId == _selectedAirport.id)
+                widget.callback(widget.pageIndex + 1);
+              else
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Выбранный аэропорт недоступен'),
+                    duration: const Duration(seconds: 2),
+                  ));
+            }),
       ],
     );
   }
